@@ -1,6 +1,9 @@
 import random
 import sqlite3
 from database import get_user
+import logging
+
+logger = logging.getLogger(__name__)
 
 def play_game(telegram_id, mode, amount, game_type):
     user = get_user(telegram_id)
@@ -40,6 +43,7 @@ def play_game(telegram_id, mode, amount, game_type):
     conn.commit()
     conn.close()
     
+    logger.info(f"Game played: {game_type}, Result: {result}, User: {telegram_id}")
     return result, win_amount
 
 def get_games(telegram_id):

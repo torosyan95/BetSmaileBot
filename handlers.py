@@ -1,4 +1,5 @@
 from aiogram import Dispatcher, types
+from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -16,7 +17,7 @@ class GameStates(StatesGroup):
     AGE_CONFIRM = State()
 
 def register_handlers(dp: Dispatcher):
-    @dp.message(commands=["start"])
+    @dp.message(CommandStart())
     async def start_command(message: types.Message, state: FSMContext):
         telegram_id = message.from_user.id
         args = message.get_args()

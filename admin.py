@@ -3,11 +3,16 @@ from aiogram.filters import Command
 from config import ADMIN_ID
 from database import get_user
 import sqlite3
+import logging
+
+logger = logging.getLogger(__name__)
 
 def register_admin_handlers(dp: Dispatcher):
     @dp.message(Command("admin"))
     async def admin_panel(message: types.Message):
+        logger.info(f"Admin panel accessed by user {message.from_user.id}")
         if message.from_user.id != ADMIN_ID:
+            logger.warning(f"Unauthorized access to admin panel by user {message.from_user.id}")
             return
         conn = sqlite3.connect("betsmilebot.db")
         cursor = conn.cursor()
@@ -28,6 +33,7 @@ def register_admin_handlers(dp: Dispatcher):
 
     @dp.callback_query(lambda c: c.data == "admin_users")
     async def admin_users(callback: types.CallbackQuery):
+        logger.info(f"Admin users accessed by user {callback.from_user.id}")
         if callback.from_user.id != ADMIN_ID:
             return
         conn = sqlite3.connect("betsmilebot.db")
@@ -40,6 +46,7 @@ def register_admin_handlers(dp: Dispatcher):
 
     @dp.callback_query(lambda c: c.data == "admin_withdrawals")
     async def admin_withdrawals(callback: types.CallbackQuery):
+        logger.info(f"Admin withdrawals accessed by user {callback.from_user.id}")
         if callback.from_user.id != ADMIN_ID:
             return
         conn = sqlite3.connect("betsmilebot.db")

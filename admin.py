@@ -1,10 +1,11 @@
 from aiogram import Dispatcher, types
+from aiogram.filters import Command
 from config import ADMIN_ID
 from database import get_user
 import sqlite3
 
 def register_admin_handlers(dp: Dispatcher):
-    @dp.message(commands=["admin"])
+    @dp.message(Command("admin"))
     async def admin_panel(message: types.Message):
         if message.from_user.id != ADMIN_ID:
             return

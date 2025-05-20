@@ -1,50 +1,58 @@
 import sqlite3
 import random
+import logging
+
+logger = logging.getLogger(__name__)
 
 def init_db():
-    conn = sqlite3.connect("betsmilebot.db")
-    cursor = conn.cursor()
-    
-    # Таблица пользователей
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            telegram_id INTEGER PRIMARY KEY,
-            language TEXT DEFAULT 'ru',
-            demo_balance REAL DEFAULT 10.0,
-            real_balance REAL DEFAULT 0.0,
-            is_blocked INTEGER DEFAULT 0,
-            referral_code TEXT,
-            referred_by INTEGER,
-            last_activity TIMESTAMP
-        )
-    """)
-    
-    # Таблица транзакций
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS transactions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            telegram_id INTEGER,
-            amount REAL,
-            type TEXT,
-            status TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    
-    # Таблица игр
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS games (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            telegram_id INTEGER,
-            game_type TEXT,
-            amount REAL,
-            result TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    
-    conn.commit()
-    conn.close()
+    try:
+        conn = sqlite3.connect("betsmilebot.db")
+        cursor = conn.cursor()
+        
+        # Таблица пользователей
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                telegram_id INTEGER PRIMARY KEY,
+                language TEXT DEFAULT 'ru',
+                demo_balance REAL DEFAULT 10.0,
+                real_balance REAL DEFAULT 0.0,
+                is_blocked INTEGER DEFAULT 0,
+                referral_code TEXT,
+                referred_by INTEGER,
+                last_activity TIMESTAMP
+            )
+        """)
+        
+        # Таблица транзакций
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS transactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                telegram_id INTEGER,
+                amount REAL,
+                type TEXT,
+                status TEXT,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        # Таблица игр
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS games (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                telegram_id INTEGER,
+                game_type TEXT,
+                amount REAL,
+                result TEXT,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        conn.commit()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Error initializing database: {e}")
+    finally:
+        conn.close()
 
 def get_user(telegram_id):
     conn = sqlite3.connect("betsmilebot.db")

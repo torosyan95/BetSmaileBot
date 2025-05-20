@@ -1,5 +1,5 @@
 from aiogram import Dispatcher, types
-from aiogram.filters import Command, CommandStart
+from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -9,7 +9,9 @@ from payments import create_payment
 from utils import get_text, ANIMATION_GIFS
 import random
 import asyncio
-import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 class GameStates(StatesGroup):
     SELECT_GAME = State()
@@ -19,6 +21,7 @@ class GameStates(StatesGroup):
 def register_handlers(dp: Dispatcher):
     @dp.message(CommandStart())
     async def start_command(message: types.Message, state: FSMContext):
+        logger.info(f"Received /start command from user {message.from_user.id}")
         telegram_id = message.from_user.id
         args = message.get_args()
         referral_code = args if args else None
@@ -33,6 +36,7 @@ def register_handlers(dp: Dispatcher):
 
     @dp.callback_query(lambda c: c.data.startswith("lang_"))
     async def set_language(callback: types.CallbackQuery, state: FSMContext):
+        logger.info(f"Language selection: {callback.data} by user {callback.from_user.id}")
         lang = callback.data.split("_")[1]
         conn = sqlite3.connect("betsmilebot.db")
         cursor = conn.cursor()
@@ -47,6 +51,7 @@ def register_handlers(dp: Dispatcher):
 
     @dp.callback_query(lambda c: c.data == "confirm_18")
     async def confirm_age(callback: types.CallbackQuery, state: FSMContext):
+        logger.info(f"Age confirmed by user {callback.from_user.id}")
         lang = get_user(callback.from_user.id)[1]
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text=get_text("play", lang), callback_data="play")],
@@ -61,6 +66,7 @@ def register_handlers(dp: Dispatcher):
 
     @dp.callback_query(lambda c: c.data == "play")
     async def play_menu(callback: types.CallbackQuery, state: FSMContext):
+        logger.info(f"Play menu accessed by user {callback.from_user.id}")
         lang = get_user(callback.from_user.id)[1]
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text=get_text("guess_number", lang), callback_data="game_guess_number"),
@@ -75,6 +81,7 @@ def register_handlers(dp: Dispatcher):
 
     @dp.callback_query(lambda c: c.data.startswith("game_"))
     async def select_game(callback: types.CallbackQuery, state: FSMContext):
+        logger.info(f"Game selected: {callback.data} by user {callback.from_user.id}")
         lang = get_user(callback.from_user.id)[1]
         game_type = callback.data.split("_")[1]
         await state.update_data(game_type=game_type)
@@ -85,6 +92,7 @@ def register_handlers(dp: Dispatcher):
     async def process_amount(message: types.Message, state: FSMContext):
         user = get_user(message.from_user.id)
         lang = user[1]
+        logger.info(f"Amount entered: {message.text} by user {message.from_user.id}")
         try:
             amount = float(message.text)
             if amount < 0.5 or amount > 500:
@@ -114,6 +122,7 @@ def register_handlers(dp: Dispatcher):
 
     @dp.callback_query(lambda c: c.data == "deposit")
     async def deposit(callback: types.CallbackQuery):
+        logger.info(f"Deposit requested by user {callback.from_user.id}")
         lang = get_user(callback.from_user.id)[1]
         payment_url = create_payment(callback.from_user.id, 0.5, "USD")
         if not payment_url:
@@ -127,6 +136,7 @@ def register_handlers(dp: Dispatcher):
 
     @dp.callback_query(lambda c: c.data == "withdraw")
     async def withdraw(callback: types.CallbackQuery):
+        logger.info(f"Withdraw requested by user {callback.from_user.id}")
         user = get_user(callback.from_user.id)
         lang = user[1]
         if user[4] < 50:
@@ -145,6 +155,7 @@ def register_handlers(dp: Dispatcher):
 
     @dp.callback_query(lambda c: c.data == "profile")
     async def profile(callback: types.CallbackQuery):
+        logger.info(f"Profile accessed by user {callback.from_user.id}")
         user = get_user(callback.from_user.id)
         lang = user[1]
         text = get_text("profile_info", lang).format(
@@ -157,6 +168,7 @@ def register_handlers(dp: Dispatcher):
 
     @dp.callback_query(lambda c: c.data == "support")
     async def support(callback: types.CallbackQuery):
+        logger.info(f"Support accessed by user {callback.from_user.id}")
         lang = get_user(callback.from_user.id)[1]
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text=get_text("back", lang), callback_data="back")]
@@ -165,6 +177,7 @@ def register_handlers(dp: Dispatcher):
 
     @dp.callback_query(lambda c: c.data == "back")
     async def back(callback: types.CallbackQuery, state: FSMContext):
+        logger.info(f"Back button pressed by user {callback.from_user.id}")
         lang = get_user(callback.from_user.id)[1]
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text=get_text("play", lang), callback_data="play")],
